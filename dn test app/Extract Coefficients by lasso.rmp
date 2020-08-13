@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?><process version="9.7.000">
+  <context>
+    <input/>
+    <output/>
+    <macros/>
+  </context>
+  <operator activated="true" class="process" compatibility="9.4.000" expanded="true" name="Process">
+    <parameter key="logverbosity" value="init"/>
+    <parameter key="random_seed" value="2001"/>
+    <parameter key="send_mail" value="never"/>
+    <parameter key="notification_email" value=""/>
+    <parameter key="process_duration_for_mail" value="30"/>
+    <parameter key="encoding" value="SYSTEM"/>
+    <process expanded="true">
+      <operator activated="true" class="python_operator_framework:create_python_read_data" compatibility="0.1.000-SNAPSHOT" expanded="true" height="82" name="Create Read Data Object" width="90" x="246" y="34">
+        <parameter key="description" value="Extract Coeffient by lasso"/>
+        <parameter key="script" value="import numpy as np&#10;import pandas as pd&#10;from sklearn.preprocessing import StandardScaler&#10;from sklearn.linear_model import LassoCV&#10;&#10;def rm_main(params):&#10;&#9;params_dict = dict(zip(params.key,params.value))&#10;&#9;##read csv&#10;&#9;file = pd.ExcelFile(params_dict['filelocation'])&#10;&#9;sheet_names = file.sheet_names&#10;&#9;data = pd.DataFrame()&#10;&#10;&#9;for name in sheet_names:&#10;&#9;&#9;df = file.parse(name)&#10;&#9;&#9;&#10;&#9;&#9;X = df.loc[:,['x1','x2','x3','x4','x5','x6','x7','x8']]&#10;&#9;&#9;Y = df['y']&#10;&#9;&#9;&#10;&#9;&#9;scaler = StandardScaler()&#10;&#9;&#9;clf = LassoCV(alphas=10 ** np.arange(-6, 1, 0.1), positive=params_dict['positive'], cv=int(params_dict['nholds']))&#10;&#9;&#9;&#10;&#9;&#9;scaler.fit(X.fillna(method = 'ffill'))&#10;&#9;&#9;clf.fit(scaler.transform(X.fillna(method = 'ffill')), Y)&#10;&#9;&#9;&#10;&#9;&#9;tx = pd.DataFrame(np.hstack([clf.alpha_, clf.intercept_, clf.coef_, ])).transpose()&#10;&#9;&#9;tx.columns = ['alpha','Intercept','x1','x2','x3','x4','x5','x6','x7','x8']&#10;&#9;&#9;&#10;&#9;&#9;data = pd.concat([data, tx])&#10;&#10;&#9;return  data"/>
+        <parameter key="params XML definition" value="&lt;?xml version=&quot;1.0&quot; encoding=&quot;UTF-8&quot;?&gt;&#10;&lt;model name=&quot;Write to AVRO&quot;&gt;&#10;&#9;&lt;parameter name=&quot;filelocation&quot; is_keyword=&quot;true&quot;&gt;&#10;&#9;&#9;&lt;description&gt;Select Output Location&lt;/description&gt;&#10;&#9;&#9;&lt;type&gt;file&lt;/type&gt;&#10;&#9;&#9;&lt;extension&gt;xlsx&lt;/extension&gt;&#10;&#9;&lt;/parameter&gt;&#10;&#9;&lt;parameter name=&quot;nholds&quot; is_keyword=&quot;true&quot;&gt;&#10;&#9;&#9;&lt;description&gt;number of holds&lt;/description&gt;&#10;&#9;&#9;&lt;type&gt;int&lt;/type&gt;&#10;&#9;&#9;&lt;min&gt;0&lt;/min&gt;&#10;&#9;&#9;&lt;max&gt;20&lt;/max&gt;&#10;&#9;&#9;&lt;default&gt;10&lt;/default&gt;&#10;&#9;&lt;/parameter&gt;&#10;    &lt;parameter name=&quot;positive&quot; is_keyword=&quot;true&quot;&gt;&#10;&#9;&#9;&lt;description&gt;positive&lt;/description&gt;&#10;&#9;&#9;&lt;type&gt;bool&lt;/type&gt;&#10;&#9;&#9;&lt;default&gt;FALSE&lt;/default&gt;&#10;&#9;&lt;/parameter&gt;&#10;&lt;/model&gt;&#10;"/>
+      </operator>
+      <operator activated="true" class="python_operator_framework:process_python_read_data" compatibility="0.1.000-SNAPSHOT" expanded="true" height="68" name="Extract Coeffient by lasso" width="90" x="447" y="34">
+        <parameter key="filelocation" value="/Users/ksk/Desktop/training_dn.xlsx"/>
+        <parameter key="nholds" value="5"/>
+        <parameter key="positive" value="true"/>
+      </operator>
+      <connect from_op="Create Read Data Object" from_port="python data Source" to_op="Extract Coeffient by lasso" to_port="pythonDataSource"/>
+      <connect from_op="Extract Coeffient by lasso" from_port="output" to_port="result 1"/>
+      <portSpacing port="source_input 1" spacing="0"/>
+      <portSpacing port="sink_result 1" spacing="0"/>
+      <portSpacing port="sink_result 2" spacing="0"/>
+    </process>
+  </operator>
+</process>
