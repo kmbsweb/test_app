@@ -36,8 +36,8 @@ if uploaded_file is not None:
     for name in sheet_names:
         df = file.parse(name)
 
-        X = df.loc[:,['x1','x2','x3','x4','x5','x6','x7','x8']]
-        Y = df['y']
+        X = df.iloc[:,1:len(df.columns)]
+        Y = df.iloc[:,0]
 
         scaler = StandardScaler()
         clf = LassoCV(alphas=10 ** np.arange(-6, 1, 0.1), positive=posneg, cv=nholds)
@@ -46,7 +46,9 @@ if uploaded_file is not None:
         clf.fit(scaler.transform(X.fillna(method = 'ffill')), Y)
     
         tx = pd.DataFrame(np.hstack([clf.alpha_, clf.intercept_, clf.coef_, ])).transpose()
-        tx.columns = ['alpha','Intercept','x1','x2','x3','x4','x5','x6','x7','x8']
+        a = ['alpha','Intercept']
+        a[len(a):len(a)] = X.columns.tolist()
+        tx.columns = a
 
         dx = pd.concat([dx, tx])
 
@@ -63,4 +65,3 @@ if uploaded_file is not None:
     st.markdown('### **⬇️ Download output CSV File **')
     href = f'<a href="data:file/csv;base64,{b64}">Download CSV File</a> (right-click and save as ".csv")'
     st.markdown(href, unsafe_allow_html=True)
-
